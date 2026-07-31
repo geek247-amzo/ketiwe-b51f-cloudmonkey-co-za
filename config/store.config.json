@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "1.0.0",
+  "siteType": "ecommerce",
+  "templateKey": "ketiwe-ritual-editorial",
+  "layoutPreset": "ketiwe-ritual-editorial",
+  "businessProfile": {
+    "name": "Ketiwe",
+    "industry": "Spiritual wellness",
+    "location": "South Africa",
+    "summary": "Spiritual healing, personal transformation and intentional living through natural African-inspired rituals.",
+    "targetCustomer": "People seeking spiritual wellness, personal transformation and intentional living"
+  },
+  "store": {
+    "name": "Ketiwe",
+    "currency": "ZAR",
+    "countryCode": "ZA",
+    "timezone": "Africa/Johannesburg",
+    "supportEmail": "hello@ketiwe.com",
+    "supportPhone": "+27 73 058 7611",
+    "whatsapp": "+27730587611"
+  },
+  "brandIdentity": {
+    "tone": "Warm, intentional, grounded and uplifting",
+    "logoText": "Ketiwe",
+    "tagline": "Heal Within. Transform Always. Live in Alignment."
+  },
+  "themeTokens": {
+    "primaryColor": "#a5691f",
+    "secondaryColor": "#c9a35b",
+    "accentColor": "#241d15",
+    "backgroundColor": "#faf6ee",
+    "surfaceColor": "#ffffff",
+    "textColor": "#3a3226",
+    "mutedTextColor": "#6b5f4c",
+    "fontFamily": "Jost, Arial, sans-serif",
+    "headingFontFamily": "Cormorant Garamond, Georgia, serif",
+    "radius": "small",
+    "mode": "light"
+  },
+  "navigation": [
+    { "label": "Home", "href": "/" },
+    { "label": "Healing", "href": "/#intention" },
+    { "label": "Rituals", "href": "/#rituals" },
+    { "label": "Business Elevation", "href": "/about" },
+    { "label": "Community", "href": "/#community" },
+    { "label": "Resources", "href": "/faq" },
+    { "label": "About", "href": "/about" },
+    { "label": "Contact", "href": "/contact" }
+  ],
+  "pages": [
+    { "slug": "/", "title": "Ketiwe", "seo": { "title": "Ketiwe | Spiritual Wellness and Personal Transformation", "description": "Spiritual healing, personal transformation and intentional living through natural African-inspired rituals." } },
+    { "slug": "/shop", "title": "Shop Rituals", "seo": { "title": "Shop Rituals | Ketiwe", "description": "Explore Ketiwe spiritual wellness, beauty, body care and herbal ritual products." } },
+    { "slug": "/category/:slug", "title": "Collection", "seo": { "title": "Ketiwe Collection", "description": "Explore the Ketiwe ritual collection." } },
+    { "slug": "/product/:slug", "title": "Product", "seo": { "title": "Ketiwe Product", "description": "View Ketiwe product details and begin your ritual." } },
+    { "slug": "/cart", "title": "Your Cart", "seo": { "title": "Your Cart | Ketiwe", "description": "Review your Ketiwe ritual order." } },
+    { "slug": "/checkout", "title": "Checkout", "seo": { "title": "Checkout | Ketiwe", "description": "Complete your secure Ketiwe checkout." } },
+    { "slug": "/payment-success", "title": "Payment Received", "seo": { "title": "Payment Received | Ketiwe", "description": "Your Ketiwe payment was received." } },
+    { "slug": "/payment-failed", "title": "Payment Failed", "seo": { "title": "Payment Failed | Ketiwe", "description": "Your Ketiwe payment could not be completed." } },
+    { "slug": "/order-tracking", "title": "Order Tracking", "seo": { "title": "Order Tracking | Ketiwe", "description": "Track your Ketiwe order." } },
+    { "slug": "/about", "title": "About Ketiwe", "seo": { "title": "About Ketiwe", "description": "Learn about Ketiwe's spiritual wellness and personal transformation journey." } },
+    { "slug": "/contact", "title": "Contact Ketiwe", "seo": { "title": "Contact Ketiwe", "description": "Connect with the Ketiwe team." } },
+    { "slug": "/faq", "title": "Resources", "seo": { "title": "Ketiwe Resources", "description": "Helpful Ketiwe resources and answers." } },
+    { "slug": "/privacy", "title": "Privacy Policy", "seo": { "title": "Privacy Policy | Ketiwe", "description": "Ketiwe privacy policy." } },
+    { "slug": "/terms", "title": "Terms", "seo": { "title": "Terms | Ketiwe", "description": "Ketiwe terms and conditions." } },
+    { "slug": "/returns", "title": "Returns", "seo": { "title": "Returns | Ketiwe", "description": "Ketiwe returns policy." } },
+    { "slug": "/shipping", "title": "Shipping", "seo": { "title": "Shipping | Ketiwe", "description": "Ketiwe shipping information." } }
+  ],
+  "homepageSections": [
+    { "type": "promoBar", "title": "Free shipping on orders over R800 · Natural. African. Made for you." },
+    { "type": "hero", "eyebrow": "Spiritual wellness", "title": "Heal Within. Transform Always. Live in Alignment.", "subtitle": "Spiritual healing, personal transformation and intentional living to help you reconnect with your purpose and rise into your future.", "ctaLabel": "Begin your journey", "ctaHref": "/shop" },
+    { "type": "intention", "title": "Shop by intention" },
+    { "type": "featuredProducts", "title": "Featured ritual collections" },
+    { "type": "community", "title": "Join the Ketiwe Community" },
+    { "type": "trust", "title": "Natural, ethical and made with intention" }
+  ],
+  "commerce": {
+    "categories": [
+      { "name": "Body Mists", "slug": "body-mists" },
+      { "name": "Body Scrubs", "slug": "body-scrubs" },
+      { "name": "Body Care", "slug": "body-care" },
+      { "name": "Sunkissed Beauty Range", "slug": "sunkissed-beauty-range" },
+      { "name": "Dewey Beauty Range", "slug": "dewey-beauty-range" },
+      { "name": "Herbal Teas", "slug": "herbal-teas" },
+      { "name": "Home Fragrance", "slug": "home-fragrance" }
+    ],
+    "starterProducts": [
+      { "title": "Clarity Body Mist", "price": 145, "sku": "KET-MIST-CLARITY", "category": "Body Mists", "description": "A light African Sage mist to clear stagnant energy and refresh the skin.", "image_url": "/ketiwe/assets/mist1.png" },
+      { "title": "Heart Blossom Body Scrub", "price": 250, "sku": "KET-SCRUB-HEART", "category": "Body Scrubs", "description": "A nourishing sugar scrub infused with rose to soften skin.", "image_url": "/ketiwe/assets/scrub1.png" },
+      { "title": "Imphepho Roller Ball Oil", "price": 150, "sku": "KET-CARE-ROLL", "category": "Body Care", "description": "A grounding African Sage roll-on oil for on-the-go clarity.", "image_url": "/ketiwe/assets/care1.png" },
+      { "title": "Sunkissed Serum", "price": 495, "sku": "KET-SUN-SERUM", "category": "Sunkissed Beauty Range", "description": "African Sage skin-renewal face serum for a radiant ritual.", "image_url": "/ketiwe/assets/sunkissed1.png" },
+      { "title": "Dewey Serum", "price": 585, "sku": "KET-DEW-SERUM", "category": "Dewey Beauty Range", "description": "An African Botanics face serum for a hydrated, dewy glow.", "image_url": "/ketiwe/assets/dewey1.png" },
+      { "title": "Imphepho African Sage Tea Bags", "price": 150, "sku": "KET-TEA-IMPHEPHO", "category": "Herbal Teas", "description": "A grounding, traditionally inspired African Sage tea ritual.", "image_url": "/ketiwe/assets/tea2.png" },
+      { "title": "Deeply Nourishing Body Mousse", "price": 220, "sku": "KET-CARE-MOUSSE", "category": "Body Care", "description": "A whipped body mousse for lasting softness and hydration.", "image_url": "/ketiwe/assets/care2.png" },
+      { "title": "Tsitsikama Room Spray", "price": 145, "sku": "KET-FRAG-TSITSI", "category": "Home Fragrance", "description": "A forest-inspired room spray to cleanse and realign a space.", "image_url": "/ketiwe/assets/catG.png" }
+    ],
+    "payment": { "providers": ["paystack", "manual_eft"], "cloudMonkeyFeePercent": 0, "manualEftEnabled": true },
+    "shipping": { "collectionEnabled": true, "zones": [{ "name": "South Africa courier", "price": 99, "regions": ["South Africa"] }] },
+    "trustBadges": ["Natural and ethical", "Made with intention", "Rooted in African wisdom", "Energy aligned"],
+    "policies": {
+      "returns": "Returns are accepted within 7 days for unused products in original packaging.",
+      "privacy": "Customer details are used only to process orders and provide support.",
+      "terms": "Orders are confirmed once payment clears.",
+      "shipping": "Free shipping applies to orders over R800. Delivery options are shown at checkout.",
+      "faq": "Questions about Ketiwe rituals, orders, delivery and returns are answered here.",
+      "checkoutMessaging": "Secure checkout powered by Paystack."
+    }
+  },
+  "analytics": {}
+}

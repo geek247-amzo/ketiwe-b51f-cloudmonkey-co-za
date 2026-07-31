@@ -1,0 +1,318 @@
+import { useEffect, useState } from "react";
+import { fetchProducts } from "./api";
+import { applyTheme, loadStoreConfig } from "./config";
+import type { HomepageSection, Product, StoreConfig } from "./types";
+
+export function StoreApp() {
+  const [config, setConfig] = useState<StoreConfig | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadStoreConfig()
+      .then((loaded) => {
+        applyTheme(loaded);
+        document.title = loaded.store.name;
+        setConfig(loaded);
+        return fetchProducts();
+      })
+      .then((dbProducts) => setProducts(dbProducts.length ? dbProducts : []))
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load store"));
+  }, []);
+
+  const path = location.pathname;
+  const resolvedProducts = products.length ? products : config?.commerce.starterProducts || [];
+
+  if (error) return <main className="shell"><div className="notice">{error}</div></main>;
+  if (!config) return <main className="shell"><div className="notice">Loading store...</div></main>;
+
+  return (
+    <>
+      {config.templateKey === "ketiwe-ritual-editorial" ? <KetiweHeader config={config} /> : <Header config={config} cartCount={0} />}
+      {path.startsWith("/admin") ? <AdminRedirect config={config} /> : <Storefront config={config} products={resolvedProducts} path={path} />}
+      {config.templateKey === "ketiwe-ritual-editorial" ? <KetiweFooter config={config} /> : <Footer config={config} />}
+    </>
+  );
+}
+
+function Header({ config, cartCount }: { config: StoreConfig; cartCount: number }) {
+  const promo = section(config, "promoBar");
+  return (
+    <>
+      {promo ? <div className="promo-bar">{promo.title || "Free delivery options and secure checkout available"}</div> : null}
+      <header className="header">
+        <a href="/" className="brand">{config.brandIdentity.logoText || config.store.name}</a>
+        <nav>{config.navigation.map((link) => <a key={link.href} href={link.href}>{link.label}</a>)}</nav>
+        <div className="header-tools"><a href="/shop" aria-label="Search">Search</a><a href="/cart" className="button">Cart {cartCount}</a></div>
+      </header>
+    </>
+  );
+}
+
+function Storefront({ config, products, path }: { config: StoreConfig; products: Product[]; path: string }) {
+  if (path === "/shop") return <Shop config={config} products={products} />;
+  if (path.startsWith("/category/")) return <CategoryPage config={config} products={products} slug={path.split("/").pop() || ""} />;
+  if (path.startsWith("/product/")) return <ProductDetail config={config} products={products} slug={path.split("/").pop() || ""} />;
+  if (path === "/cart") return <Cart config={config} />;
+  if (path === "/checkout") return <Checkout config={config} />;
+  if (path === "/payment-success") return <Status title="Payment received" body="Your order payment was received. We will send updates as the order progresses." />;
+  if (path === "/payment-failed") return <Status title="Payment failed" body="The payment could not be completed. Please try again or contact the store." />;
+  if (path === "/order-tracking") return <OrderTracking config={config} />;
+  if (["/about", "/faq", "/privacy", "/terms", "/returns", "/shipping", "/contact"].includes(path)) return <PolicyPage config={config} path={path} />;
+  return <Home config={config} products={products} />;
+}
+
+function Home({ config, products }: { config: StoreConfig; products: Product[] }) {
+  if (config.templateKey === "ketiwe-ritual-editorial") return <KetiweHome products={products} />;
+  if (config.templateKey === "fashion-retail-editorial" || config.layoutPreset === "fashion-retail-editorial") {
+    return <FashionRetailHome config={config} products={products} />;
+  }
+  return (
+    <main>
+      <section className="hero">
+        <div>
+          <p className="eyebrow">{config.businessProfile.industry}</p>
+          <h1>{config.brandIdentity.tagline || `Shop ${config.store.name}`}</h1>
+          <p>{config.businessProfile.summary}</p>
+          <div className="actions"><a href="/shop" className="button">Shop now</a><a href="/contact" className="ghost">Contact us</a></div>
+        </div>
+        <div className="hero-card">{config.commerce.trustBadges.map((badge) => <span key={badge}>{badge}</span>)}</div>
+      </section>
+      <ProductSection title="Featured products" products={products.slice(0, 6)} />
+    </main>
+  );
+}
+
+function KetiweHeader({ config }: { config: StoreConfig }) {
+  return <>
+    <div className="ketiwe-promo">FREE SHIPPING ON ORDERS OVER R800 <span>•</span> NATURAL. AFRICAN. MADE FOR YOU.</div>
+    <header className="ketiwe-header">
+      <div className="ketiwe-header-inner">
+        <a href="/" className="ketiwe-brand"><img src="/ketiwe/assets/ketiwe-logo-trans.png" alt="Ketiwe — The chosen one" /></a>
+        <nav>{config.navigation.map((link) => <a key={link.href} href={link.href}>{link.label.toUpperCase()}</a>)}</nav>
+        <div className="ketiwe-tools"><a href="/shop" aria-label="Search">⌕</a><a href="/dashboard" aria-label="Account">◎</a><a href="/cart" aria-label="Cart">🛍</a></div>
+      </div>
+    </header>
+  </>;
+}
+
+function KetiweFooter({ config }: { config: StoreConfig }) {
+  return <footer className="ketiwe-footer">
+    <div className="ketiwe-container ketiwe-footer-inner">
+      <div><img src="/ketiwe/assets/ketiwe-logo-trans.png" alt="Ketiwe" /><p>Spiritual wellness. Personal transformation.<br />Business elevation. Legacy building.</p></div>
+      <div><strong>SHOP</strong><a href="/shop">All Products</a><a href="/shop">Ritual Collections</a><a href="/shop">New Arrivals</a></div>
+      <div><strong>EXPLORE</strong><a href="/#intention">Healing</a><a href="/#rituals">Rituals</a><a href="/#community">Community</a></div>
+      <div><strong>WE ARE HERE FOR YOU</strong><p>{config.store.supportPhone || "+27 73 058 7611"}</p><p>{config.store.supportEmail || "hello@ketiwe.com"}</p><p>South Africa</p></div>
+      <small>© 2026 Ketiwe. All rights reserved.</small>
+    </div>
+  </footer>;
+}
+
+function KetiweHome({ products }: { products: Product[] }) {
+  const categories = [
+    ["HEAL", "Release, restore and realign.", "/ketiwe/assets/exp1.png"],
+    ["ELEVATE", "Build confidence, clarity and purpose.", "/ketiwe/assets/exp2.png"],
+    ["ABUNDANCE", "Attract opportunities, wealth and flow.", "/ketiwe/assets/exp3.png"],
+    ["PROTECT", "Cleanse, ground and shield your energy.", "/ketiwe/assets/exp4.png"],
+    ["NOURISH", "Nourish your body, mind and soul.", "/ketiwe/assets/tile-nourish.png"],
+  ];
+  return <main className="ketiwe-store">
+    <section className="ketiwe-hero"><div className="ketiwe-container ketiwe-hero-grid"><div className="ketiwe-hero-copy"><p className="ketiwe-eyebrow">SPIRITUAL WELLNESS · PERSONAL TRANSFORMATION</p><h1>Heal Within.<br /><em>Transform Always.</em><br />Live in Alignment.</h1><p>Spiritual healing, personal transformation and intentional living to help you reconnect with your purpose, align your energy and rise into your future.</p><div className="ketiwe-actions"><a href="/shop">BEGIN YOUR JOURNEY</a><a className="outline" href="#rituals">EXPLORE RITUALS</a></div><div className="ketiwe-values"><span>✦<small>NATURAL &<br />ETHICAL</small></span><span>♡<small>MADE WITH<br />INTENTION</small></span><span>◈<small>ROOTED IN<br />AFRICAN WISDOM</small></span><span>☀<small>ENERGY<br />ALIGNED</small></span></div></div><div className="ketiwe-hero-visual"><img className="ketiwe-hero-product-image" src="/ketiwe/assets/hero-ketiwe-products.png" alt="Ketiwe skincare and wellness products" /></div></div></section>
+    <section id="intention" className="ketiwe-section"><div className="ketiwe-container"><div className="ketiwe-section-heading"><span>—</span> SHOP BY INTENTION <span>—</span></div><div className="ketiwe-intentions">{categories.map(([title, copy, image]) => <a className="ketiwe-intention-card" href="#rituals" key={title}><img className="ketiwe-intention-card-image" src={image} alt={title} /><div><strong>{title}</strong><p>{copy}</p><small>EXPLORE →</small></div></a>)}</div></div></section>
+    <section className="ketiwe-movement"><span>MORE THAN PRODUCTS. THIS IS A MOVEMENT.</span><div><p>Premium quality rituals</p><p>Created for spiritual wellness & growth</p><p>Rooted in African wisdom</p><p>For personal transformation</p></div></section>
+    <section id="rituals" className="ketiwe-section"><div className="ketiwe-container"><div className="ketiwe-section-heading"><span>—</span> FEATURED RITUAL COLLECTIONS <span>—</span></div><ProductGrid products={products.slice(0, 8)} /></div></section>
+    <section id="community" className="ketiwe-community"><div className="ketiwe-container ketiwe-community-inner"><div><span>YOU DON'T HAVE TO WALK ALONE.</span><h2>Join the Ketiwe Community</h2><p>Get weekly inspiration, rituals, business tips and exclusive offers to support your journey.</p><form onSubmit={(event) => event.preventDefault()}><input type="email" placeholder="Enter your email address" /><button type="submit">JOIN THE COMMUNITY</button></form><small>✓ Weekly inspiration &nbsp; ✓ Exclusive offers &nbsp; ✓ Healing practices</small></div><img src="/ketiwe/assets/exp4.png" alt="Ketiwe community ritual" /></div></section>
+  </main>;
+}
+
+function FashionRetailHome({ config, products }: { config: StoreConfig; products: Product[] }) {
+  const hero = section(config, "hero");
+  const categories = config.commerce.categories.length ? config.commerce.categories : [{ name: "New Arrivals", slug: "new-arrivals" }, { name: "Women", slug: "women" }, { name: "Accessories", slug: "accessories" }];
+  const featured = products.length ? products : config.commerce.starterProducts;
+  const hotProducts = featured.length > 4 ? featured : [...featured, ...featured].slice(0, 8);
+  return (
+    <main className="fashion-store">
+      <section className="fashion-hero">
+        <div className="hero-copy">
+          <p className="eyebrow">{hero?.eyebrow || "New arrivals"}</p>
+          <h1>{hero?.title || config.brandIdentity.tagline || `Shop ${config.store.name}`}</h1>
+          <p>{hero?.subtitle || config.businessProfile.summary}</p>
+          <a href={hero?.ctaHref || "/shop"} className="button">{hero?.ctaLabel || "Shop now"}</a>
+        </div>
+        <div className="fashion-hero-art"><span>{config.businessProfile.industry || "Collection"}</span></div>
+      </section>
+
+      <section className="offer-strip">
+        <strong>Black Friday and Cyber Monday Sale</strong>
+        <span>Up to 70% off</span>
+        <a href="/shop">Shop now</a>
+      </section>
+
+      <section className="category-mosaic">
+        {categories.slice(0, 6).map((category, index) => (
+          <a className={`mosaic-card mosaic-${index + 1}`} href={`/category/${category.slug}`} key={category.slug || category.name}>
+            <span>Shop</span>
+            <strong>{category.name}</strong>
+          </a>
+        ))}
+      </section>
+
+      <ProductRail title="New In Products" subtitle="Fresh edits selected for your customers." products={featured.slice(0, 6)} />
+
+      <section className="collection-split">
+        <a href="/category/party-collections"><span>Party collections</span><strong>Occasion-ready styles</strong></a>
+        <a href="/category/spring-summer"><span>Spring/Summer collections</span><strong>Light seasonal favourites</strong></a>
+      </section>
+
+      <div className="sale-ticker"><span>70% Off</span><span>Selected products</span><span>Limited offers</span><span>Secure checkout</span></div>
+
+      <ProductSection title="Hot Products" products={hotProducts.slice(0, 8)} />
+
+      <section className="video-shoppable">
+        <div className="section-heading"><h2>Video Shoppable</h2><p>Short-form product moments ready for social commerce.</p></div>
+        <div className="video-grid">{featured.slice(0, 4).map((product, index) => <MiniStory product={product} index={index} key={product.id || product.sku || product.title} />)}</div>
+      </section>
+
+      <section className="lookbook">
+        <div className="section-heading"><h2>Shop The Look</h2><p>Editorial outfits and styled combinations for easy discovery.</p></div>
+        <div className="lookbook-grid"><div></div><div></div><div></div></div>
+      </section>
+
+      <section className="testimonial-feature">
+        <div className="testimonial-image"></div>
+        <blockquote><p>Everything is just as described. The store experience was smooth and delivery updates were clear.</p><strong>Verified buyer</strong></blockquote>
+      </section>
+
+      <section className="instagram-shop">
+        <div className="section-heading"><h2>Instagram Shoppable</h2><p>Image-led discovery connected back to products.</p></div>
+        <div className="insta-grid">{Array.from({ length: 6 }).map((_, index) => <span key={index}>+</span>)}</div>
+      </section>
+
+      <BenefitBar />
+    </main>
+  );
+}
+
+function Shop({ config, products }: { config: StoreConfig; products: Product[] }) {
+  return <main className="section"><h1>Shop</h1><p>{config.commerce.policies.checkoutMessaging}</p><ProductGrid products={products} /></main>;
+}
+
+function CategoryPage({ config, products, slug }: { config: StoreConfig; products: Product[]; slug: string }) {
+  const category = config.commerce.categories.find((item) => item.slug === slug);
+  const categoryName = category?.name || titleCase(slug);
+  const filtered = products.filter((product) => slugify(product.category_name || product.category || "") === slug);
+  return <main className="section"><h1>{categoryName}</h1><p>Browse products in {categoryName}.</p><ProductGrid products={(filtered.length ? filtered : products).slice(0, 12)} /></main>;
+}
+
+function ProductDetail({ products, slug }: { config: StoreConfig; products: Product[]; slug: string }) {
+  const product = products.find((item) => item.slug === slug || slugify(item.title) === slug) || products[0];
+  if (!product) return <Status title="Product coming soon" body="This product page is ready for the store owner to add inventory." />;
+  return (
+    <main className="section product-detail">
+      <div className="product-detail-image">{product.image_url ? <img src={product.image_url} alt={product.title} /> : <span>{product.category_name || product.category || "Product"}</span>}</div>
+      <div>
+        <p className="eyebrow">{product.category_name || product.category || "Product"}</p>
+        <h1>{product.title}</h1>
+        <p className="product-short-description">{product.short_description || product.description || "A product selected for this store."}</p>
+        {product.long_description && product.long_description !== product.short_description ? <div className="product-long-description">{product.long_description}</div> : null}
+        <strong>{currency(product.price)}</strong>
+        <div className="actions"><button>Add to cart</button><a className="ghost" href="/shop">Back to shop</a></div>
+      </div>
+    </main>
+  );
+}
+
+function ProductSection({ title, products }: { title: string; products: Product[] }) {
+  return <section className="section"><h2>{title}</h2><ProductGrid products={products} /></section>;
+}
+
+function ProductGrid({ products }: { products: Product[] }) {
+  return (
+    <div className="product-grid">
+      {products.map((product) => (
+        <article className="product-card" key={product.id || product.sku || product.title}>
+          <div className="product-image">{product.image_url ? <img src={product.image_url} alt={product.title} /> : <span>{product.category_name || product.category || "Product"}</span>}</div>
+          <h3>{product.title}</h3>
+          <p>{product.short_description || product.description || product.sku}</p>
+          <strong>{currency(product.price)}</strong>
+          <div className="product-actions"><a className="ghost" href={`/product/${product.slug || slugify(product.title)}`}>View</a><button>Add to cart</button></div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ProductRail({ title, subtitle, products }: { title: string; subtitle: string; products: Product[] }) {
+  return (
+    <section className="section compact">
+      <div className="section-heading"><h2>{title}</h2><p>{subtitle}</p></div>
+      <div className="product-rail">{products.map((product) => <article key={product.id || product.sku || product.title}><div className="rail-image">{product.image_url ? <img src={product.image_url} alt={product.title} /> : null}</div><strong>{product.title}</strong><span>{currency(product.price)}</span></article>)}</div>
+    </section>
+  );
+}
+
+function MiniStory({ product, index }: { product: Product; index: number }) {
+  return <article className={`story story-${index + 1}`}><div></div><section><strong>{product.title}</strong><span>{currency(product.price)}</span></section></article>;
+}
+
+function Cart({ config }: { config: StoreConfig }) {
+  return <main className="section narrow"><h1>Your cart</h1><p>Cart persistence is ready for API integration. Checkout supports {String(config.commerce.payment.providers || "Paystack")}.</p><a className="button" href="/checkout">Continue to checkout</a></main>;
+}
+
+function Checkout({ config }: { config: StoreConfig }) {
+  return <main className="section narrow"><h1>Checkout</h1><p>{config.commerce.policies.checkoutMessaging}</p><form><input placeholder="Email address" type="email" /><input placeholder="Delivery address" /><button type="button">Pay securely</button></form></main>;
+}
+
+function OrderTracking({ config }: { config: StoreConfig }) {
+  return <main className="section narrow"><h1>Order tracking</h1><p>Customers can use their order number and email address to follow delivery updates from {config.store.name}.</p><form><input placeholder="Order number" /><input placeholder="Email address" type="email" /><button type="button">Track order</button></form></main>;
+}
+
+function PolicyPage({ config, path }: { config: StoreConfig; path: string }) {
+  const key = path.replace("/", "");
+  const page = config.pages.find((item) => item.slug === path);
+  if (path === "/contact") {
+    return <main className="section narrow"><h1>Contact {config.store.name}</h1><p>{config.businessProfile.summary}</p><form><input placeholder="Name" /><input placeholder="Email address" type="email" /><input placeholder="How can we help?" /><button type="button">Send enquiry</button></form></main>;
+  }
+  if (path === "/faq") {
+    return <main className="section narrow"><h1>FAQ</h1><p>{config.commerce.policies.faq || "Find answers about orders, delivery, returns, and payments."}</p><div className="faq-list"><h3>How long does delivery take?</h3><p>{config.commerce.policies.shipping || "Delivery timelines depend on your address and selected method."}</p><h3>Can I return an order?</h3><p>{config.commerce.policies.returns}</p></div></main>;
+  }
+  return <main className="section narrow"><h1>{page?.title || titleCase(key)}</h1><p>{config.commerce.policies[key] || config.businessProfile.summary}</p></main>;
+}
+
+function Status({ title, body }: { title: string; body: string }) {
+  return <main className="section narrow"><h1>{title}</h1><p>{body}</p><a className="button" href="/shop">Back to shop</a></main>;
+}
+
+function AdminRedirect({ config }: { config: StoreConfig }) {
+  return (
+    <main className="section narrow">
+      <h1>{config.store.name} management</h1>
+      <p>Store management is handled securely inside the CloudMonkey dashboard.</p>
+      <a className="button" href="https://cloudmonkey.co.za/dashboard/websites">Open CloudMonkey Dashboard</a>
+    </main>
+  );
+}
+
+function BenefitBar() {
+  return <section className="benefit-bar"><span>Fast delivery</span><span>Safe payment</span><span>Online support</span><span>Free returns</span></section>;
+}
+
+function Footer({ config }: { config: StoreConfig }) {
+  return <footer className="site-footer"><div><strong>{config.store.name}</strong><p>{config.businessProfile.summary}</p></div><div><h4>Categories</h4>{config.commerce.categories.slice(0, 4).map((category) => <a href={`/category/${category.slug}`} key={category.slug}>{category.name}</a>)}</div><div><h4>Information</h4><a href="/about">About</a><a href="/contact">Contact</a><a href="/faq">FAQ</a><a href="/shipping">Shipping</a></div><div><h4>Legal</h4><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/returns">Returns</a></div><small>Built by CloudMonkey. {config.store.supportEmail}</small></footer>;
+}
+
+function currency(amount: number) {
+  return new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(amount || 0);
+}
+
+function section(config: StoreConfig, type: string): HomepageSection | undefined {
+  return config.homepageSections?.find((item) => item.type === type);
+}
+
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "item";
+}
+
+function titleCase(value: string) {
+  return value.replace(/[-_]+/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
